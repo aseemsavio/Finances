@@ -5,6 +5,7 @@ import (
 	"finances/utils"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"os"
+	"strings"
 )
 
 func DoTheNeedful(config entrypoint.Config) {
@@ -15,7 +16,22 @@ func DoTheNeedful(config entrypoint.Config) {
 
 func getMonthsSpending(lines [][]string) {
 	transactionalDetails := getTransactionDetails(lines)
+	correctAnomalies(transactionalDetails)
 	displayTable(transactionalDetails)
+}
+
+func correctAnomalies(details [][]string) {
+	for i := range details {
+		if i > 0 {
+			for j := range details[i] {
+				switch j {
+				case 0:
+					date := details[i][j]
+					details[i][j] = strings.Replace(date, ",", "-", -1)
+				}
+			}
+		}
+	}
 }
 
 func displayTable(transactionalDetails [][]string) {
