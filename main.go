@@ -2,11 +2,10 @@ package main
 
 import (
 	"finances/core"
-	"finances/utils"
+	"finances/entrypoint"
 )
 
 func main() {
-	file := utils.LocalFile(utils.ReadFile("finance.csv"))
-	records := file.Csv()
-	core.GetMonthsSpending(records)
+	config := entrypoint.CompileArguments()
+	core.DoTheNeedful(config)
 }

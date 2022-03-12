@@ -5,8 +5,7 @@ import (
 	"os"
 )
 
-// ReadFile
-// Reads and returns a file object.
+// ReadFile looks for a file with a given file name and returns it.
 func ReadFile(path string) *os.File {
 	file, error := os.Open(path)
 	if error != nil {

@@ -6,17 +6,8 @@ import (
 	"os"
 )
 
-type File struct {
-	*os.File
-}
-
-func LocalFile(file *os.File) File {
-	return File{file}
-}
-
-//Csv
-// Creates CSV out of a file
-func (file *File) Csv() [][]string {
+//Csv creates CSVs out of a file
+func Csv(file *os.File) [][]string {
 	reader := csv.NewReader(file)
 	lines, error := reader.ReadAll()
 	if error != nil {
