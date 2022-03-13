@@ -23,6 +23,11 @@ func DoTheNeedful(config entrypoint.Config) {
 	debited, credited := getDebitedAndCreditArrays(transactionalDetails)
 	displayTable(debited)
 	displayTable(credited)
+
+	/*db, _ := utils.DatabaseService()
+	s := utils.SpreadSheet()
+	db.CreateDatabase(&s)*/
+
 }
 
 // getDebitedAndCreditArrays returns two slices of debited and credited records.

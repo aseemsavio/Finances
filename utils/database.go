@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -36,19 +37,35 @@ func SpreadSheet() sheets.Spreadsheet {
 		DataSources:         nil,
 		DeveloperMetadata:   nil,
 		NamedRanges:         nil,
-		Properties:          nil,
-		Sheets:              nil,
-		SpreadsheetId:       "",
-		SpreadsheetUrl:      "",
-		ServerResponse:      googleapi.ServerResponse{},
-		ForceSendFields:     nil,
-		NullFields:          nil,
+		Properties: &sheets.SpreadsheetProperties{
+			AutoRecalc:                   "",
+			DefaultFormat:                nil,
+			IterativeCalculationSettings: nil,
+			Locale:                       "",
+			SpreadsheetTheme:             nil,
+			TimeZone:                     "",
+			Title:                        "Aseem's Finances",
+			ForceSendFields:              nil,
+			NullFields:                   nil,
+		},
+		Sheets:          nil,
+		SpreadsheetId:   "",
+		SpreadsheetUrl:  "",
+		ServerResponse:  googleapi.ServerResponse{},
+		ForceSendFields: nil,
+		NullFields:      nil,
 	}
 }
 
 // CreateDatabase creates a spreadsheet to be used as a database.
-func (db *Database) createDatabase(spreadSheet *sheets.Spreadsheet) {
-	db.service.Spreadsheets.Create(spreadSheet)
+func (db *Database) CreateDatabase(spreadSheet *sheets.Spreadsheet) {
+	res, error := db.service.Spreadsheets.Create(spreadSheet).Context(context.Background()).Do()
+	if error != nil {
+		fmt.Printf("Error occurred: %#v\n", error)
+	} else {
+		fmt.Println(res.SpreadsheetId, res.HTTPStatusCode, res.Properties, res.Sheets)
+		fmt.Printf("%#v\n", res)
+	}
 }
 
 // AddData adds data to the database.
