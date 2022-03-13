@@ -10,7 +10,7 @@ type Config struct {
 // CompileArguments compiles the command line argument and outputs a Config object.
 func CompileArguments() Config {
 	card := flag.String("card", "icici", "Usage: -card=icici")
-	file := flag.String("File", "finance.csv", "Usage: -File=finance.csv")
+	file := flag.String("file", "finance.csv", "Usage: -File=finance.csv")
 	flag.Parse()
 	return Config{
 		Card: *card,

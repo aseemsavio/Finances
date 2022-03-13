@@ -8,16 +8,38 @@ import (
 	"strings"
 )
 
-func DoTheNeedful(config entrypoint.Config) {
-	file := utils.ReadFile(config.File)
-	records := utils.Csv(file)
-	getMonthsSpending(records)
+type Record struct {
+	TransactionDate string
+	Details         string
+	Amount          int64
+	ReferenceNumber int64
 }
 
-func getMonthsSpending(lines [][]string) {
-	transactionalDetails := getTransactionDetails(lines)
+func DoTheNeedful(config entrypoint.Config) {
+	file := utils.ReadFile(config.File)
+	recordsArray := utils.Csv(file)
+	transactionalDetails := getTransactionDetails(recordsArray)
 	correctAnomalies(transactionalDetails)
-	displayTable(transactionalDetails)
+	debited, credited := getDebitedAndCreditArrays(transactionalDetails)
+	displayTable(debited)
+	displayTable(credited)
+}
+
+// getDebitedAndCreditArrays returns two slices of debited and credited records.
+func getDebitedAndCreditArrays(lines [][]string) ([][]string, [][]string) {
+	var debited [][]string
+	var credited [][]string
+	for _, line := range lines {
+		if strings.HasSuffix(strings.TrimSpace(line[2]), "Dr.") {
+			line[2] = strings.TrimSuffix(line[2], "Dr.")
+			debited = append(debited, line)
+		}
+		if strings.HasSuffix(strings.TrimSpace(line[2]), "Cr.") {
+			line[2] = strings.TrimSuffix(line[2], "Cr.")
+			credited = append(credited, line)
+		}
+	}
+	return debited, credited
 }
 
 func correctAnomalies(details [][]string) {
@@ -38,20 +60,18 @@ func displayTable(transactionalDetails [][]string) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{
-		transactionalDetails[0][0],
-		transactionalDetails[0][1],
-		transactionalDetails[0][2],
-		transactionalDetails[0][3],
+		"Transaction Date",
+		"Details",
+		"Amount (INR)",
+		"Reference Number",
 	})
 	for i := range transactionalDetails {
-		if i > 0 {
-			t.AppendRow(table.Row{
-				transactionalDetails[i][0],
-				transactionalDetails[i][1],
-				transactionalDetails[i][2],
-				transactionalDetails[i][3],
-			})
-		}
+		t.AppendRow(table.Row{
+			transactionalDetails[i][0],
+			transactionalDetails[i][1],
+			transactionalDetails[i][2],
+			transactionalDetails[i][3],
+		})
 	}
 	t.AppendSeparator()
 	t.Render()
