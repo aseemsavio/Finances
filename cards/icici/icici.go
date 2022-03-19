@@ -23,11 +23,6 @@ func DoTheNeedful(config entrypoint.Config) {
 	debited, credited := getDebitedAndCreditArrays(transactionalDetails)
 	displayTable(debited)
 	displayTable(credited)
-
-	/*db, _ := utils.DatabaseService()
-	s := utils.SpreadSheet()
-	db.CreateDatabase(&s)*/
-
 }
 
 // getDebitedAndCreditArrays returns two slices of debited and credited records.
@@ -55,6 +50,10 @@ func correctAnomalies(details [][]string) {
 				case 0:
 					date := details[i][j]
 					details[i][j] = strings.Replace(date, ",", "-", -1)
+				case 2:
+					malformedAmountString := details[i][j]
+					correctedAmount := strings.Replace(malformedAmountString, ",", "", -1)
+					details[i][j] = correctedAmount
 				}
 			}
 		}
