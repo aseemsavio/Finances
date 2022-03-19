@@ -47,9 +47,11 @@ func correctAnomalies(details [][]string) {
 		if i > 0 {
 			for j := range details[i] {
 				switch j {
+				/* Date format is weird (with commas!!) in the CSV. This fixes it. */
 				case 0:
 					date := details[i][j]
 					details[i][j] = strings.Replace(date, ",", "-", -1)
+				/* Removes the commas in the amount */
 				case 2:
 					malformedAmountString := details[i][j]
 					correctedAmount := strings.Replace(malformedAmountString, ",", "", -1)
@@ -88,6 +90,8 @@ func getTransactionDetails(lines [][]string) [][]string {
 		var row []string
 		for j := range lines[i] {
 			value := lines[i][j]
+			/* This is where the transaction details start in the CSV file.
+			Hence, anything above this is ignored.*/
 			if value == "Transaction Details" {
 				start = true
 				break
