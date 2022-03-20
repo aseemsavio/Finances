@@ -8,6 +8,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"os"
 	"strings"
+	"sync"
 )
 
 type Record struct {
@@ -24,6 +25,9 @@ const (
 )
 
 func DoTheNeedful(config entrypoint.Config) {
+	var waitGroup sync.WaitGroup
+	{
+	}
 	file := utils.ReadFile(config.File)
 	recordsArray := utils.Csv(file)
 	transactionalDetails := getTransactionDetails(recordsArray)
@@ -40,14 +44,17 @@ func DoTheNeedful(config entrypoint.Config) {
 		}
 	*/
 	for _, value := range debited {
-		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Debit})
+		waitGroup.Add(1)
+		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Debit}, &waitGroup)
 	}
 
 	for _, value := range credited {
-		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Credit})
+		waitGroup.Add(1)
+		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Credit}, &waitGroup)
 	}
 
-	fmt.Printf("Service: %+v", db)
+	waitGroup.Wait()
+	fmt.Printf("Successfully completed writing to Google Sheet!")
 }
 
 // getDebitAndCreditArrays returns two slices of debited and credited records.
@@ -133,19 +140,4 @@ func getTransactionDetails(lines [][]string) [][]string {
 		}
 	}
 	return transactionDetails
-}
-
-// toInterfaceSlice converts a slice of strings into a slice of interface.
-func toInterfaceSlice(stringSlice [][]string) [][]interface{} {
-	myInterface := make([][]interface{}, len(stringSlice))
-	for i, _ := range myInterface {
-		myInterface[i] = make([]interface{}, len(stringSlice[0]))
-	}
-
-	for i, row := range stringSlice {
-		for j, value := range row {
-			myInterface[i][j] = value
-		}
-	}
-	return myInterface
 }

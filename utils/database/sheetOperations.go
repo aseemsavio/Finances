@@ -4,6 +4,7 @@ import (
 	"context"
 	"google.golang.org/api/sheets/v4"
 	"log"
+	"sync"
 )
 
 type SpreadsheetResponse struct {
@@ -27,7 +28,8 @@ func (service SheetService) GetData(spreadsheetId string, readRange string) (Spr
 }
 
 // PutData puts data into the given Google Sheet.
-func (service SheetService) PutData(spreadsheetId string, writeRange string, valuesToWrite []interface{}) error {
+func (service SheetService) PutData(spreadsheetId string, writeRange string, valuesToWrite []interface{}, wg *sync.WaitGroup) error {
+
 	log.Printf("🤞 Writing data to Google Sheets...")
 	var valueRange sheets.ValueRange
 	valueRange.Values = append(valueRange.Values, valuesToWrite)
@@ -35,11 +37,13 @@ func (service SheetService) PutData(spreadsheetId string, writeRange string, val
 	if err != nil {
 		log.Fatalf("Error occurred while writing data into the spreadsheet: %v", err)
 	}
+	defer wg.Done()
 	return err
 }
 
 // PutDataBatch puts data into the given Google Sheet in bulk.
-func (service SheetService) putDataBatch(spreadsheetId string, writeRange string, valuesToWrite [][]interface{}) error {
+func (service SheetService) putDataBatch(spreadsheetId string, writeRange string, valuesToWrite [][]interface{}, wg *sync.WaitGroup) error {
+	defer wg.Done()
 	log.Printf("🤞 Writing a batch of data to Google Sheets...")
 	rb := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "RAW",
