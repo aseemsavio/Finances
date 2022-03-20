@@ -3,6 +3,8 @@ package icici
 import (
 	"finances/entrypoint"
 	"finances/utils"
+	"finances/utils/database"
+	"fmt"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"os"
 	"strings"
@@ -20,13 +22,24 @@ func DoTheNeedful(config entrypoint.Config) {
 	recordsArray := utils.Csv(file)
 	transactionalDetails := getTransactionDetails(recordsArray)
 	correctAnomalies(transactionalDetails)
-	debited, credited := getDebitedAndCreditArrays(transactionalDetails)
+	debited, credited := getDebitAndCreditArrays(transactionalDetails)
 	displayTable(debited)
 	displayTable(credited)
+
+	db, _ := database.NewSpreadsheetService()
+	data, _ := db.GetData(config.SpreadSheetId, "Sheet1!A1:D3")
+
+	for _, row := range data.ValueRange.Values {
+		fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+	}
+
+	db.PutData(config.SpreadSheetId, "A1", []interface{}{"2-1-22", "added from app 222 ", "1000", "5765236565"})
+
+	fmt.Printf("Service: %+v", db)
 }
 
-// getDebitedAndCreditArrays returns two slices of debited and credited records.
-func getDebitedAndCreditArrays(lines [][]string) ([][]string, [][]string) {
+// getDebitAndCreditArrays returns two slices of debited and credited records.
+func getDebitAndCreditArrays(lines [][]string) ([][]string, [][]string) {
 	var debited [][]string
 	var credited [][]string
 	for _, line := range lines {
@@ -51,11 +64,11 @@ func correctAnomalies(details [][]string) {
 				case 0:
 					date := details[i][j]
 					details[i][j] = strings.Replace(date, ",", "-", -1)
-				/* Removes the commas in the amount */
+				/* Gets rid of the commas in the amount */
 				case 2:
 					malformedAmountString := details[i][j]
-					correctedAmount := strings.Replace(malformedAmountString, ",", "", -1)
-					details[i][j] = correctedAmount
+					moneyMoneyMoney := strings.Replace(malformedAmountString, ",", "", -1)
+					details[i][j] = moneyMoneyMoney
 				}
 			}
 		}
