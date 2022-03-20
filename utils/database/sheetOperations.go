@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"google.golang.org/api/sheets/v4"
 	"log"
 )
@@ -26,17 +27,27 @@ func (service SheetService) GetData(spreadsheetId string, readRange string) (Spr
 }
 
 // PutData puts data into the given Google Sheet.
-func (service SheetService) PutData(spreadsheetId string, writeRange string, valuesToWrite []interface{}) (AppendValuesResponse, error) {
+func (service SheetService) PutData(spreadsheetId string, writeRange string, valuesToWrite []interface{}) error {
+	log.Printf("🤞 Writing data to Google Sheets...")
 	var valueRange sheets.ValueRange
 	valueRange.Values = append(valueRange.Values, valuesToWrite)
-	response, err := service.Service.Spreadsheets.Values.Append(spreadsheetId, writeRange, &valueRange).ValueInputOption("RAW").Do()
+	_, err := service.Service.Spreadsheets.Values.Append(spreadsheetId, writeRange, &valueRange).ValueInputOption("RAW").Do()
 	if err != nil {
 		log.Fatalf("Error occurred while writing data into the spreadsheet: %v", err)
 	}
-	return AppendValuesResponse{AppendValuesResponse: response}, err
+	return err
 }
 
 // PutDataBatch puts data into the given Google Sheet in bulk.
-func (service SheetService) PutDataBatch(spreadsheetId string, writeRange string, valuesToWrite [][]interface{}) {
-
+func (service SheetService) putDataBatch(spreadsheetId string, writeRange string, valuesToWrite [][]interface{}) error {
+	log.Printf("🤞 Writing a batch of data to Google Sheets...")
+	rb := &sheets.BatchUpdateValuesRequest{
+		ValueInputOption: "RAW",
+	}
+	rb.Data = append(rb.Data, &sheets.ValueRange{Range: writeRange, Values: valuesToWrite})
+	_, err := service.Service.Spreadsheets.Values.BatchUpdate(spreadsheetId, rb).Context(context.Background()).Do()
+	if err != nil {
+		log.Fatalf("Error occurred while BULK writing data into the spreadsheet: %v", err)
+	}
+	return err
 }

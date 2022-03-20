@@ -17,6 +17,12 @@ type Record struct {
 	ReferenceNumber int64
 }
 
+const (
+	CardName = "ICICI-AMAZON-Credit-CARD"
+	Credit   = "CREDIT"
+	Debit    = "DEBIT"
+)
+
 func DoTheNeedful(config entrypoint.Config) {
 	file := utils.ReadFile(config.File)
 	recordsArray := utils.Csv(file)
@@ -27,13 +33,19 @@ func DoTheNeedful(config entrypoint.Config) {
 	displayTable(credited)
 
 	db, _ := database.NewSpreadsheetService()
-	data, _ := db.GetData(config.SpreadSheetId, "Sheet1!A1:D3")
+	/*	data, _ := db.GetData(config.SpreadSheetId, "Sheet1!A1:D3")
 
-	for _, row := range data.ValueRange.Values {
-		fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+		for _, row := range data.ValueRange.Values {
+			fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+		}
+	*/
+	for _, value := range debited {
+		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Debit})
 	}
 
-	db.PutData(config.SpreadSheetId, "A1", []interface{}{"2-1-22", "added from app 222 ", "1000", "5765236565"})
+	for _, value := range credited {
+		db.PutData(config.SpreadSheetId, "A1", []interface{}{value[0], value[1], value[2], value[3], CardName, Credit})
+	}
 
 	fmt.Printf("Service: %+v", db)
 }
@@ -121,4 +133,19 @@ func getTransactionDetails(lines [][]string) [][]string {
 		}
 	}
 	return transactionDetails
+}
+
+// toInterfaceSlice converts a slice of strings into a slice of interface.
+func toInterfaceSlice(stringSlice [][]string) [][]interface{} {
+	myInterface := make([][]interface{}, len(stringSlice))
+	for i, _ := range myInterface {
+		myInterface[i] = make([]interface{}, len(stringSlice[0]))
+	}
+
+	for i, row := range stringSlice {
+		for j, value := range row {
+			myInterface[i][j] = value
+		}
+	}
+	return myInterface
 }
